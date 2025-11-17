@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Boutons Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .success {
+            background: #43e97b !important;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test des Boutons Profile</h1>
+
+    <!-- Test 1: Télécharger QR -->
+    <div class="test-section">
+        <h2>✅ Test 1: Télécharger QR Code</h2>
+        <button onclick="testDownloadQR()">📥 Télécharger QR</button>
+        <div id="log1" class="log"></div>
+    </div>
+
+    <!-- Test 2: Copier Code -->
+    <div class="test-section">
+        <h2>✅ Test 2: Copier Code QR</h2>
+        <button id="copyBtn" onclick="testCopyQR()">📋 Copier Code</button>
+        <div id="log2" class="log"></div>
+    </div>
+
+    <!-- Test 3: Tester Scanner -->
+    <div class="test-section">
+        <h2>✅ Test 3: Ouvrir Scanner</h2>
+        <button onclick="testOpenScanner()">🧪 Tester Scanner</button>
+        <div id="log3" class="log"></div>
+    </div>
+
+    <!-- Test 4: Upload Image -->
+    <div class="test-section">
+        <h2>✅ Test 4: Upload Image</h2>
+        <input type="file" id="fileInput" accept="image/*" onchange="testUploadImage(this)">
+        <div id="log4" class="log"></div>
+    </div>
+
+    <!-- Test 5: API Backend -->
+    <div class="test-section">
+        <h2>✅ Test 5: API Backend</h2>
+        <button onclick="testBackendAPI()">🔌 Tester API</button>
+        <div id="log5" class="log"></div>
+    </div>
+
+    <script>
+        // Données de test
+        const testUser = {
+            username: 'admin',
+            qr_code: 'TEST123QR',
+            full_name: 'Test User'
+        };
+
+        function log(id, message, isSuccess = true) {
+            const logDiv = document.getElementById(id);
+            const emoji = isSuccess ? '✅' : '❌';
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `${emoji} [${timestamp}] ${message}<br>`;
+            console.log(emoji, message);
+        }
+
+        // Test 1: Télécharger QR
+        async function testDownloadQR() {
+            log('log1', '🔽 Fonction downloadQR appelée');
+            
+            const qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + testUser.qr_code;
+            log('log1', 'QR Image URL: ' + qrImageUrl);
+            
+            try {
+                log('log1', '📥 Début du téléchargement...');
+                const response = await fetch(qrImageUrl);
+                log('log1', 'Response status: ' + response.status);
+                
+                const blob = await response.blob();
+                log('log1', 'Blob size: ' + blob.size + ' bytes');
+                
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = testUser.username + '_qr_code.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                log('log1', '✅ Téléchargement réussi!');
+                alert(`✅ QR Code téléchargé!\nFichier: ${testUser.username}_qr_code.png`);
+            } catch (error) {
+                log('log1', '❌ Erreur: ' + error.message, false);
+                alert('❌ Erreur: ' + error.message);
+            }
+        }
+
+        // Test 2: Copier Code
+        async function testCopyQR() {
+            log('log2', '📋 Fonction copyQRCode appelée');
+            log('log2', 'QR Code: ' + testUser.qr_code);
+            
+            try {
+                await navigator.clipboard.writeText(testUser.qr_code);
+                log('log2', '✅ Copie réussie!');
+                
+                const btn = document.getElementById('copyBtn');
+                btn.classList.add('success');
+                btn.innerHTML = '✅ Copié!';
+                
+                setTimeout(() => {
+                    btn.classList.remove('success');
+                    btn.innerHTML = '📋 Copier Code';
+                }, 2000);
+                
+                alert(`✅ Code copié!\nCode: ${testUser.qr_code}`);
+            } catch (error) {
+                log('log2', '❌ Erreur: ' + error.message, false);
+                alert('❌ Erreur: ' + error.message);
+            }
+        }
+
+        // Test 3: Ouvrir Scanner
+        function testOpenScanner() {
+            log('log3', '🧪 Fonction testScanner appelée');
+            log('log3', 'QR Code: ' + testUser.qr_code);
+            
+            const scannerUrl = '/qr-scanner?code=' + testUser.qr_code;
+            log('log3', 'Ouverture de: ' + scannerUrl);
+            
+            const newWindow = window.open(scannerUrl, '_blank');
+            
+            if (newWindow) {
+                log('log3', '✅ Fenêtre ouverte avec succès');
+                alert(`✅ Scanner ouvert!\nCode: ${testUser.qr_code}`);
+            } else {
+                log('log3', '❌ Popup bloqué', false);
+                alert('❌ Popup bloqué. Autorisez les pop-ups.');
+            }
+        }
+
+        // Test 4: Upload Image
+        async function testUploadImage(input) {
+            const file = input.files[0];
+            if (!file) {
+                log('log4', '❌ Aucun fichier sélectionné', false);
+                return;
+            }
+            
+            log('log4', '📸 Fonction handleProfileImageChange appelée');
+            log('log4', 'Fichier: ' + file.name + ' (' + file.size + ' bytes)');
+            
+            if (file.size > 5 * 1024 * 1024) {
+                log('log4', '❌ Fichier trop grand (> 5MB)', false);
+                alert('❌ Image trop grande (> 5MB)');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                log('log4', '📤 Upload vers backend...');
+                const response = await fetch('http://localhost:5000/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                log('log4', 'Response: ' + JSON.stringify(data));
+                
+                if (response.ok) {
+                    log('log4', '✅ Upload réussi!');
+                    alert(`✅ Upload réussi!\nFichier: ${data.filename}`);
+                } else {
+                    log('log4', '❌ Erreur serveur: ' + data.error, false);
+                    alert('❌ Erreur: ' + data.error);
+                }
+            } catch (error) {
+                log('log4', '❌ Erreur réseau: ' + error.message, false);
+                alert('❌ Erreur: ' + error.message);
+            }
+        }
+
+        // Test 5: API Backend
+        async function testBackendAPI() {
+            log('log5', '🔌 Test de connexion API...');
+            
+            // Test 1: Backend alive
+            try {
+                log('log5', 'Test 1: Backend health check...');
+                const response = await fetch('http://localhost:5000/');
+                log('log5', 'Backend status: ' + response.status);
+                
+                if (response.ok) {
+                    log('log5', '✅ Backend accessible');
+                } else {
+                    log('log5', '❌ Backend error: ' + response.status, false);
+                }
+            } catch (error) {
+                log('log5', '❌ Backend non accessible: ' + error.message, false);
+                alert('❌ Backend non accessible!\nAssurez-vous que python3 app.py est lancé sur le port 5000');
+                return;
+            }
+
+            // Test 2: API Upload endpoint
+            try {
+                log('log5', 'Test 2: API upload endpoint...');
+                const testBlob = new Blob(['test'], {type: 'text/plain'});
+                const formData = new FormData();
+                formData.append('file', testBlob, 'test.txt');
+                
+                const response = await fetch('http://localhost:5000/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('log5', '✅ API Upload OK: ' + data.filename);
+                } else {
+                    log('log5', '⚠️ Upload test failed: ' + response.status);
+                }
+            } catch (error) {
+                log('log5', '❌ API Upload error: ' + error.message, false);
+            }
+
+            log('log5', '🎉 Tests terminés!');
+            alert('✅ Tests API terminés! Vérifiez les logs.');
+        }
+
+        // Au chargement
+        window.onload = function() {
+            console.log('🚀 Page de test chargée');
+            console.log('User test:', testUser);
+            log('log1', 'Prêt pour les tests');
+            log('log2', 'Prêt pour les tests');
+            log('log3', 'Prêt pour les tests');
+            log('log4', 'Prêt pour les tests');
+            log('log5', 'Prêt pour les tests');
+        };
+    </script>
+</body>
+</html>
