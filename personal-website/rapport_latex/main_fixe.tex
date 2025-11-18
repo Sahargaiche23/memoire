@@ -1,0 +1,604 @@
+% ============================================================
+% RAPPORT DE PROJET - Patrimoine Municipal
+% Version corrigée pour Overleaf
+% ============================================================
+
+\documentclass[12pt,a4paper]{report}
+
+% ============================================================
+% PACKAGES ESSENTIELS
+% ============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{amsmath}
+
+% ============================================================
+% CONFIGURATION GÉOMÉTRIE
+% ============================================================
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=2cm
+}
+
+% ============================================================
+% COULEURS
+% ============================================================
+\definecolor{maincolor}{RGB}{102, 126, 234}
+\definecolor{codebackground}{RGB}{245, 245, 245}
+
+% ============================================================
+% HYPERLINKS
+% ============================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=maincolor,
+    filecolor=maincolor,
+    urlcolor=maincolor,
+    citecolor=maincolor,
+    pdftitle={Rapport Patrimoine Municipal},
+    pdfauthor={Sahar},
+    bookmarks=true,
+}
+
+% ============================================================
+% TITRES
+% ============================================================
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\color{maincolor}}
+{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+
+\titleformat{\section}
+{\normalfont\Large\bfseries\color{maincolor}}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\normalfont\large\bfseries}
+{\thesubsection}{1em}{}
+
+% ============================================================
+% EN-TÊTES ET PIEDS DE PAGE
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ============================================================
+% CODE LISTINGS
+% ============================================================
+\lstset{
+    backgroundcolor=\color{codebackground},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    captionpos=b,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    tabsize=2,
+    showstringspaces=false
+}
+
+% ============================================================
+% DÉBUT DU DOCUMENT
+% ============================================================
+\begin{document}
+
+% ============================================================
+% PAGE DE GARDE
+% ============================================================
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\huge\bfseries Système de Gestion du\\[0.5cm]Patrimoine Municipal\par}
+    
+    \vspace{2cm}
+    
+    {\Large\itshape Rapport de Projet de Fin d'Études\par}
+    
+    \vspace{3cm}
+    
+    {\Large Réalisé par:\par}
+    {\large\bfseries Sahar Gaiche\par}
+    
+    \vspace{1cm}
+    
+    {\Large Encadré par:\par}
+    {\large Nom de l'Encadrant\par}
+    
+    \vfill
+    
+    {\large Année Universitaire\par}
+    {\large\bfseries 2024-2025\par}
+    
+    \vspace{1cm}
+    
+\end{titlepage}
+
+% ============================================================
+% REMERCIEMENTS
+% ============================================================
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+
+Je tiens à exprimer mes sincères remerciements à toutes les personnes qui ont contribué à la réalisation de ce projet.
+
+Tout d'abord, je remercie mon encadrant pour ses conseils précieux, son soutien constant et sa disponibilité tout au long de ce projet.
+
+Je remercie également l'équipe de la municipalité pour leur accueil et leur collaboration, notamment pour avoir partagé leur expertise et leurs besoins réels en matière de gestion du patrimoine.
+
+Mes remerciements s'adressent aussi à ma famille pour leur soutien inconditionnel et leurs encouragements durant toute ma formation.
+
+\newpage
+
+% ============================================================
+% TABLES
+% ============================================================
+\tableofcontents
+\newpage
+
+\listoffigures
+\newpage
+
+\listoftables
+\newpage
+
+% ============================================================
+% INTRODUCTION
+% ============================================================
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+Dans un contexte de modernisation des services publics et de digitalisation des processus administratifs, la gestion du patrimoine municipal représente un défi majeur pour les collectivités locales.
+
+Le présent projet vise à développer une \textbf{plateforme web complète} de gestion du patrimoine municipal, permettant aux différents acteurs de collaborer efficacement dans la gestion quotidienne des actifs, des maintenances et des alertes.
+
+Ce rapport présente l'ensemble du processus de développement du système, en suivant la \textbf{méthodologie Agile SCRUM} avec une organisation en \textbf{4 sprints} de deux semaines chacun.
+
+\section*{Objectifs du Projet}
+
+Les objectifs principaux de ce projet sont:
+
+\begin{itemize}
+    \item Centraliser la gestion de tous les actifs municipaux
+    \item Automatiser les processus de maintenance préventive et corrective
+    \item Alerter automatiquement sur les maintenances urgentes ou en retard
+    \item Faciliter la communication entre les services
+    \item Générer des rapports et statistiques en temps réel
+    \item Optimiser les coûts de maintenance
+\end{itemize}
+
+\section*{Structure du Rapport}
+
+Ce rapport est organisé comme suit:
+
+\begin{description}
+    \item[Chapitre 1] Présentation du projet, objectifs, outils et méthodologie SCRUM
+    \item[Chapitre 2] Capture des besoins fonctionnels et non-fonctionnels
+    \item[Chapitre 3] Sprint 1 - Fonctionnalités d'administration
+    \item[Chapitre 4] Sprint 2 - Gestion des actifs
+    \item[Chapitre 5] Sprint 3 - Gestion des maintenances et alertes dynamiques
+    \item[Chapitre 6] Sprint 4 - Messagerie instantanée
+    \item[Conclusion] Résultats obtenus et perspectives
+\end{description}
+
+\newpage
+
+% ============================================================
+% CHAPITRE 1: PRÉSENTATION
+% ============================================================
+\chapter{Présentation du Projet}
+
+\section{Introduction}
+
+La gestion du patrimoine municipal englobe l'ensemble des activités liées à l'inventaire, la maintenance, le suivi et l'optimisation des actifs appartenant à une municipalité.
+
+Ces actifs incluent:
+\begin{itemize}
+    \item \textbf{Biens immobiliers:} Bâtiments administratifs, écoles, bibliothèques
+    \item \textbf{Véhicules:} Bus municipaux, véhicules de service
+    \item \textbf{Équipements:} Mobilier urbain, matériel informatique
+    \item \textbf{Infrastructures:} Routes, ponts, éclairage public
+\end{itemize}
+
+\section{Contexte et Problématique}
+
+\subsection{Problématique Actuelle}
+
+La municipalité fait face à plusieurs défis:
+
+\begin{itemize}
+    \item Gestion manuelle avec registres papier dispersés
+    \item Absence de traçabilité des maintenances
+    \item Pas de système d'alerte automatique
+    \item Communication difficile entre services
+    \item Rapports incomplets
+    \item Coûts de maintenance élevés
+\end{itemize}
+
+\subsection{Solution Proposée}
+
+Notre solution apporte:
+
+\begin{itemize}
+    \item Système centralisé avec base de données unique
+    \item Traçabilité complète de chaque actif
+    \item Alertes automatiques en temps réel
+    \item Messagerie intégrée
+    \item Rapports automatisés
+    \item Optimisation des coûts
+\end{itemize}
+
+\section{Technologies et Outils}
+
+\subsection{Stack Technique}
+
+Le projet utilise une architecture \textbf{MicroServices} moderne.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Composant} & \textbf{Technologies} \\
+\midrule
+Frontend & React 18.2, Axios, Recharts \\
+Backend & Flask 3.0, SQLAlchemy 2.0 \\
+Base de données & SQLite (Dev), PostgreSQL (Prod) \\
+Authentification & JWT (JSON Web Tokens) \\
+API & REST, JSON \\
+\bottomrule
+\end{tabular}
+\caption{Stack technique du projet}
+\end{table}
+
+\subsection{Outils de Développement}
+
+\begin{itemize}
+    \item IDE: Visual Studio Code
+    \item Versioning: Git + GitHub
+    \item API Testing: Postman
+    \item UML: PlantUML
+    \item Documentation: Markdown, LaTeX
+\end{itemize}
+
+\section{Méthodologie SCRUM}
+
+\subsection{Principes SCRUM}
+
+SCRUM est un framework agile qui permet de développer des projets complexes de manière itérative et incrémentale.
+
+Les principes clés:
+\begin{enumerate}
+    \item \textbf{Itératif:} Développement par cycles courts (sprints)
+    \item \textbf{Incrémental:} Ajout progressif de fonctionnalités
+    \item \textbf{Adaptatif:} Ajustement continu selon feedback
+    \item \textbf{Collaboratif:} Équipe auto-organisée
+    \item \textbf{Transparent:} Visibilité totale sur l'avancement
+\end{enumerate}
+
+\subsection{Organisation en 4 Sprints}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{clc}
+\toprule
+\textbf{Sprint} & \textbf{Focus} & \textbf{Points} \\
+\midrule
+Sprint 1 & Administrateur & 21 \\
+Sprint 2 & Gestionnaire d'Actifs & 34 \\
+Sprint 3 & Gestion Maintenances & 26 \\
+Sprint 4 & Messagerie & 22 \\
+\midrule
+\textbf{Total} & \textbf{8 semaines} & \textbf{103} \\
+\bottomrule
+\end{tabular}
+\caption{Planification des sprints}
+\end{table}
+
+\newpage
+
+% ============================================================
+% CHAPITRE 2: CAPTURE DES BESOINS
+% ============================================================
+\chapter{Capture des Besoins}
+
+\section{Introduction}
+
+La phase de capture des besoins permet d'identifier précisément les besoins fonctionnels, non-fonctionnels, les acteurs et les cas d'utilisation du système.
+
+\section{Besoins Fonctionnels}
+
+\subsection{BF1: Gestion des Utilisateurs}
+
+\begin{itemize}
+    \item Inscription et authentification sécurisée
+    \item Gestion des profils utilisateurs
+    \item Attribution des rôles (Admin, Gestionnaire, Technicien)
+    \item Modification du mot de passe
+\end{itemize}
+
+\subsection{BF2: Gestion des Actifs}
+
+\begin{itemize}
+    \item Ajouter, modifier, supprimer un actif
+    \item Consulter la liste des actifs
+    \item Rechercher et filtrer les actifs
+    \item Consulter l'historique complet
+    \item Enregistrer les mouvements
+\end{itemize}
+
+\subsection{BF3: Gestion des Maintenances}
+
+\begin{itemize}
+    \item Planifier une maintenance (préventive ou corrective)
+    \item Consulter les maintenances planifiées
+    \item Modifier ou annuler une maintenance
+    \item Marquer une maintenance comme terminée
+    \item Consulter l'historique
+    \item Enregistrer les coûts
+\end{itemize}
+
+\subsection{BF4: Système d'Alertes Dynamiques}
+
+Le système génère automatiquement des alertes pour:
+
+\begin{itemize}
+    \item Maintenances urgentes (dans les 7 prochains jours)
+    \item Maintenances en retard
+    \item Actifs nécessitant une maintenance
+\end{itemize}
+
+Les alertes sont \textbf{100\% dynamiques}, basées sur les données en temps réel, et s'actualisent automatiquement toutes les 30 secondes.
+
+\subsection{BF5: Messagerie}
+
+\begin{itemize}
+    \item Envoyer un message à un utilisateur
+    \item Créer un groupe de discussion
+    \item Consulter les conversations
+    \item Rechercher des messages
+    \item Recevoir des notifications
+\end{itemize}
+
+\section{Besoins Non-Fonctionnels}
+
+\subsection{Performance}
+
+\begin{itemize}
+    \item Temps de chargement $\leq$ 2 secondes
+    \item Temps de réponse API $\leq$ 500ms
+    \item Support de 100 utilisateurs simultanés
+\end{itemize}
+
+\subsection{Sécurité}
+
+\begin{itemize}
+    \item Authentification JWT sécurisée
+    \item Hachage des mots de passe (bcrypt)
+    \item Protection contre injections SQL
+    \item Contrôle d'accès basé sur les rôles (RBAC)
+    \item HTTPS en production
+\end{itemize}
+
+\subsection{Ergonomie}
+
+\begin{itemize}
+    \item Interface intuitive et moderne
+    \item Design responsive (mobile, tablet, desktop)
+    \item Feedback visuel pour chaque action
+    \item Messages d'erreur clairs
+\end{itemize}
+
+\section{Product Backlog}
+
+Le Product Backlog complet contient 17 User Stories réparties sur 4 sprints pour un total de 103 points de story.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{clcc}
+\toprule
+\textbf{ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Points} \\
+\midrule
+US01 & S'authentifier & Haute & 5 \\
+US02 & Gérer les utilisateurs & Haute & 8 \\
+US03 & Gérer les catégories & Haute & 3 \\
+US05 & Ajouter un actif & Haute & 8 \\
+US09 & Planifier maintenance & Haute & 8 \\
+US11 & Voir alertes urgentes & Haute & 8 \\
+US15 & Envoyer messages & Moyenne & 8 \\
+\bottomrule
+\end{tabular}
+\caption{Product Backlog (extrait)}
+\end{table}
+
+\newpage
+
+% ============================================================
+% CHAPITRE 3: SPRINT 1 - ADMINISTRATEUR
+% ============================================================
+\chapter{Sprint 1: Administrateur}
+
+\section{Introduction}
+
+Le Sprint 1 se concentre sur la mise en place des fonctionnalités d'administration du système:
+\begin{itemize}
+    \item Authentification et gestion de session
+    \item Gestion des utilisateurs
+    \item Gestion des catégories d'actifs
+    \item Dashboard administrateur avec statistiques
+\end{itemize}
+
+\textbf{Durée:} 2 semaines (10 jours ouvrables)\\
+\textbf{Points de Story:} 21 points\\
+\textbf{Objectif:} Établir les fondations du système
+
+\section{User Stories du Sprint 1}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{clc}
+\toprule
+\textbf{ID} & \textbf{User Story} & \textbf{Points} \\
+\midrule
+US01 & Authentification & 5 \\
+US02 & Créer utilisateur & 3 \\
+US03 & Modifier utilisateur & 2 \\
+US04 & Supprimer utilisateur & 3 \\
+US05 & Gérer catégories & 3 \\
+US06 & Consulter dashboard & 5 \\
+\midrule
+\textbf{Total} & & \textbf{21} \\
+\bottomrule
+\end{tabular}
+\caption{User Stories Sprint 1}
+\end{table}
+
+\section{Implémentation}
+
+\subsection{Backend - Authentification}
+
+L'authentification utilise JWT (JSON Web Tokens) avec Flask-JWT-Extended:
+
+\begin{lstlisting}[language=Python, caption=API Login]
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    user = User.query.filter_by(email=email).first()
+    
+    if user and check_password_hash(user.password_hash, password):
+        token = create_access_token(identity=str(user.id))
+        return jsonify({'token': token, 'user': user.to_dict()})
+    
+    return jsonify({'error': 'Invalid credentials'}), 401
+\end{lstlisting}
+
+\subsection{Frontend - Dashboard}
+
+Le dashboard affiche les statistiques en temps réel avec des graphiques interactifs (Recharts).
+
+\section{Résultats}
+
+Le Sprint 1 a été complété avec succès:
+\begin{itemize}
+    \item Authentification JWT fonctionnelle
+    \item Gestion complète des utilisateurs (CRUD)
+    \item Dashboard avec statistiques et graphiques
+    \item Tous les tests validés avec Postman
+\end{itemize}
+
+\textbf{Vélocité:} 21 points en 10 jours = 2.1 points/jour
+
+\newpage
+
+% ============================================================
+% CONCLUSION
+% ============================================================
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+
+Ce projet de développement d'un système de gestion du patrimoine municipal a permis d'atteindre tous les objectifs fixés en appliquant rigoureusement la méthodologie SCRUM.
+
+\section*{Objectifs Atteints}
+
+\begin{itemize}
+    \item Authentification sécurisée JWT
+    \item Gestion complète des actifs (CRUD)
+    \item Planification des maintenances
+    \item Alertes dynamiques 100\% temps réel
+    \item Statistiques et graphiques interactifs
+    \item Messagerie instantanée avec groupes
+    \item Architecture MicroServices scalable
+\end{itemize}
+
+\section*{Technologies Maîtrisées}
+
+\begin{itemize}
+    \item \textbf{Frontend:} React 18, React Router, Recharts
+    \item \textbf{Backend:} Flask 3, SQLAlchemy, JWT
+    \item \textbf{Base de données:} SQL, ORM
+    \item \textbf{API:} REST, JSON
+\end{itemize}
+
+\section*{Métriques du Projet}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Métrique} & \textbf{Valeur} \\
+\midrule
+Durée totale & 8 semaines \\
+Nombre de sprints & 4 \\
+Points de story & 103 \\
+Vélocité moyenne & 25.75 points/sprint \\
+Taux de réussite & 100\% \\
+\bottomrule
+\end{tabular}
+\caption{Métriques finales du projet}
+\end{table}
+
+\section*{Perspectives d'Évolution}
+
+Plusieurs pistes d'amélioration peuvent être envisagées:
+
+\begin{enumerate}
+    \item Application mobile (React Native) pour accès terrain
+    \item Notifications push pour alertes critiques
+    \item Export PDF/Excel avancé des rapports
+    \item Scan QR Code pour identification rapide des actifs
+    \item Dashboard analytics avec prédictions IA
+    \item Intégration IoT pour monitoring temps réel
+\end{enumerate}
+
+\section*{Mot de Fin}
+
+Ce projet a été une expérience enrichissante qui m'a permis de mettre en pratique mes connaissances en développement web full-stack et en gestion de projet agile.
+
+% ============================================================
+% BIBLIOGRAPHIE
+% ============================================================
+\begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{Bibliographie}
+
+\bibitem{flask}
+Flask Documentation, \url{https://flask.palletsprojects.com/}
+
+\bibitem{react}
+React Documentation, \url{https://react.dev/}
+
+\bibitem{scrum}
+The Scrum Guide, Ken Schwaber and Jeff Sutherland, \url{https://scrumguides.org/}
+
+\bibitem{jwt}
+JSON Web Tokens Introduction, \url{https://jwt.io/introduction}
+
+\bibitem{restapi}
+RESTful API Design Best Practices, \url{https://restfulapi.net/}
+
+\bibitem{uml}
+UML Documentation, Object Management Group, \url{https://www.uml.org/}
+
+\end{thebibliography}
+
+\end{document}

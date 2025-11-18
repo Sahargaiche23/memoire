@@ -1,0 +1,642 @@
+% ============================================================
+% RAPPORT DE PROJET - Patrimoine Municipal
+% ============================================================
+
+\documentclass[12pt,a4paper]{report}
+
+% ============================================================
+% PACKAGES
+% ============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+
+% ============================================================
+% CONFIGURATION
+% ============================================================
+
+% Marges
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=2cm
+}
+
+% Couleurs
+\definecolor{maincolor}{RGB}{102, 126, 234}
+\definecolor{codebackground}{RGB}{245, 245, 245}
+\definecolor{codecolor}{RGB}{0, 0, 0}
+
+% Hyperlinks
+\hypersetup{
+    colorlinks=true,
+    linkcolor=maincolor,
+    filecolor=maincolor,
+    urlcolor=maincolor,
+    citecolor=maincolor,
+    pdftitle={Rapport Patrimoine Municipal},
+    pdfauthor={Votre Nom},
+    bookmarks=true,
+}
+
+% Titres
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\color{maincolor}}
+{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+
+\titleformat{\section}
+{\normalfont\Large\bfseries\color{maincolor}}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\normalfont\large\bfseries}
+{\thesubsection}{1em}{}
+
+% En-têtes et pieds de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Code listings
+\lstset{
+    backgroundcolor=\color{codebackground},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    captionpos=b,
+    commentstyle=\color{green!60!black},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    tabsize=2,
+    showstringspaces=false
+}
+
+% ============================================================
+% INFORMATIONS DU DOCUMENT
+% ============================================================
+\title{
+    \textbf{\LARGE Système de Gestion du Patrimoine Municipal}\\
+    \vspace{1cm}
+    \Large Rapport de Projet de Fin d'Études
+}
+\author{Votre Nom}
+\date{Novembre 2025}
+
+% ============================================================
+% DÉBUT DU DOCUMENT
+% ============================================================
+\begin{document}
+
+% ============================================================
+% PAGE DE GARDE
+% ============================================================
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\huge\bfseries Système de Gestion du\\Patrimoine Municipal\par}
+    
+    \vspace{2cm}
+    
+    {\Large\itshape Rapport de Projet de Fin d'Études\par}
+    
+    \vspace{3cm}
+    
+    {\Large Réalisé par:\par}
+    {\large\bfseries Votre Nom\par}
+    
+    \vspace{1cm}
+    
+    {\Large Encadré par:\par}
+    {\large Nom de l'Encadrant\par}
+    
+    \vfill
+    
+    {\large Année Universitaire\par}
+    {\large\bfseries 2024-2025\par}
+    
+    \vspace{1cm}
+    
+\end{titlepage}
+
+% ============================================================
+% REMERCIEMENTS
+% ============================================================
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+
+Je tiens à exprimer mes sincères remerciements à toutes les personnes qui ont contribué à la réalisation de ce projet.
+
+Tout d'abord, je remercie mon encadrant [Nom] pour ses conseils précieux, son soutien constant et sa disponibilité tout au long de ce projet.
+
+Je remercie également l'équipe de la municipalité pour leur accueil et leur collaboration, notamment pour avoir partagé leur expertise et leurs besoins réels en matière de gestion du patrimoine.
+
+Mes remerciements s'adressent aussi à ma famille pour leur soutien inconditionnel et leurs encouragements durant toute ma formation.
+
+Enfin, je remercie tous mes professeurs et collègues qui ont participé de près ou de loin à l'aboutissement de ce travail.
+
+\newpage
+
+% ============================================================
+% TABLES
+% ============================================================
+\tableofcontents
+\newpage
+
+\listoffigures
+\newpage
+
+\listoftables
+\newpage
+
+% ============================================================
+% INTRODUCTION
+% ============================================================
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+Dans un contexte de modernisation des services publics et de digitalisation des processus administratifs, la gestion du patrimoine municipal représente un défi majeur pour les collectivités locales. La nécessité de suivre, maintenir et optimiser l'utilisation des actifs publics (bâtiments, véhicules, équipements) devient cruciale pour assurer une gestion efficace et transparente des ressources municipales.
+
+Le présent projet vise à développer une \textbf{plateforme web complète} de gestion du patrimoine municipal, permettant aux différents acteurs (administrateurs, gestionnaires, techniciens) de collaborer efficacement dans la gestion quotidienne des actifs, des maintenances et des alertes.
+
+Ce rapport présente l'ensemble du processus de développement du système, en suivant la \textbf{méthodologie Agile SCRUM} avec une organisation en \textbf{4 sprints} de deux semaines chacun.
+
+\section*{Objectifs du Projet}
+
+Les objectifs principaux de ce projet sont les suivants:
+
+\begin{itemize}[leftmargin=2cm]
+    \item \textbf{Centraliser} la gestion de tous les actifs municipaux dans une base de données unique
+    \item \textbf{Automatiser} les processus de maintenance préventive et corrective
+    \item \textbf{Alerter} automatiquement sur les maintenances urgentes ou en retard
+    \item \textbf{Faciliter} la communication entre les différents services via une messagerie intégrée
+    \item \textbf{Générer} des rapports et statistiques en temps réel
+    \item \textbf{Optimiser} les coûts de maintenance grâce à la planification préventive
+\end{itemize}
+
+\section*{Structure du Rapport}
+
+Ce rapport est organisé comme suit:
+
+\begin{description}[leftmargin=2cm]
+    \item[Chapitre 1] présente le contexte du projet, les objectifs, les outils utilisés et la méthodologie SCRUM adoptée
+    \item[Chapitre 2] détaille la capture des besoins fonctionnels et non-fonctionnels, le benchmarking et le backlog produit
+    \item[Chapitre 3] décrit le Sprint 1 consacré aux fonctionnalités d'administration
+    \item[Chapitre 4] présente le Sprint 2 focalisé sur la gestion des actifs
+    \item[Chapitre 5] expose le Sprint 3 dédié à la gestion des maintenances et alertes dynamiques
+    \item[Chapitre 6] détaille le Sprint 4 concernant la messagerie instantanée
+    \item[Conclusion] récapitule les résultats obtenus et les perspectives d'évolution
+\end{description}
+
+\newpage
+
+% ============================================================
+% CHAPITRE 1: PRÉSENTATION
+% ============================================================
+\chapter{Présentation du Projet}
+
+\section{Introduction}
+
+La gestion du patrimoine municipal englobe l'ensemble des activités liées à l'inventaire, la maintenance, le suivi et l'optimisation des actifs appartenant à une municipalité. Ces actifs peuvent inclure:
+
+\begin{itemize}
+    \item \textbf{Biens immobiliers:} Bâtiments administratifs, écoles, bibliothèques, centres culturels
+    \item \textbf{Véhicules:} Bus municipaux, véhicules de service, ambulances, voitures de police
+    \item \textbf{Équipements:} Mobilier urbain, équipements informatiques, matériel de bureau
+    \item \textbf{Infrastructures:} Routes, ponts, systèmes d'éclairage public
+\end{itemize}
+
+\section{Présentation de l'Organisme d'Accueil}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Nom} & Municipalité [Nom de la ville] \\
+\textbf{Secteur} & Administration publique locale \\
+\textbf{Mission} & Gestion et développement des services publics locaux \\
+\bottomrule
+\end{tabular}
+\caption{Informations sur l'organisme d'accueil}
+\end{table}
+
+La municipalité gère un patrimoine composé de:
+\begin{itemize}
+    \item 150+ bâtiments publics
+    \item 50+ véhicules municipaux
+    \item 1000+ équipements divers
+\end{itemize}
+
+\section{Présentation Générale du Projet}
+
+Le projet \textbf{"Système de Gestion du Patrimoine Municipal"} est une application web moderne qui permet de centraliser et automatiser la gestion des actifs municipaux.
+
+\subsection{Objectifs Principaux}
+
+\begin{enumerate}
+    \item Centraliser la gestion de tous les actifs municipaux
+    \item Automatiser les processus de maintenance préventive et corrective
+    \item Alerter automatiquement sur les maintenances urgentes ou en retard
+    \item Faciliter la communication entre les différents services
+    \item Générer des rapports et statistiques en temps réel
+    \item Suivre les mouvements et l'historique de chaque actif
+    \item Optimiser les coûts de maintenance
+\end{enumerate}
+
+\subsection{Acteurs du Système}
+
+Le système compte plusieurs types d'utilisateurs avec des rôles distincts:
+
+\begin{description}
+    \item[Administrateur] Gestion globale du système et des utilisateurs
+    \item[Gestionnaire d'Actifs] Ajout, modification et suivi des actifs
+    \item[Responsable Maintenance] Planification et suivi des maintenances
+    \item[Technicien] Exécution des maintenances et mise à jour des statuts
+    \item[Agent Municipal] Signalement de problèmes et consultation
+\end{description}
+
+\section{Contexte et Problématique}
+
+\subsection{Problématique Actuelle}
+
+La municipalité fait face à plusieurs défis dans la gestion de son patrimoine:
+
+\begin{itemize}
+    \item[$\times$] \textbf{Gestion manuelle:} Registres papier et fichiers Excel dispersés
+    \item[$\times$] \textbf{Pas de traçabilité:} Historique incomplet des maintenances
+    \item[$\times$] \textbf{Maintenances manquées:} Pas de système d'alerte automatique
+    \item[$\times$] \textbf{Communication difficile:} Emails et appels téléphoniques
+    \item[$\times$] \textbf{Rapports incomplets:} Difficulté à générer des statistiques
+    \item[$\times$] \textbf{Coûts élevés:} Maintenances correctives imprévues
+\end{itemize}
+
+\subsection{Solution Proposée}
+
+Notre solution apporte les améliorations suivantes:
+
+\begin{itemize}
+    \item[\checkmark] \textbf{Système centralisé:} Base de données unique
+    \item[\checkmark] \textbf{Traçabilité complète:} Historique détaillé de chaque actif
+    \item[\checkmark] \textbf{Alertes automatiques:} Notifications temps réel
+    \item[\checkmark] \textbf{Messagerie intégrée:} Communication instantanée
+    \item[\checkmark] \textbf{Rapports automatisés:} Dashboard et statistiques
+    \item[\checkmark] \textbf{Optimisation:} Maintenance préventive planifiée
+\end{itemize}
+
+\section{Technologies et Outils}
+
+\subsection{Architecture Technique}
+
+Le projet utilise une architecture \textbf{MicroServices} moderne avec séparation complète du frontend et du backend.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lp{8cm}}
+\toprule
+\textbf{Composant} & \textbf{Technologies} \\
+\midrule
+Frontend & React 18.2, React Router, Axios, Recharts \\
+Backend & Flask 3.0, SQLAlchemy 2.0, Flask-JWT-Extended \\
+Base de données & SQLite (Dev), PostgreSQL (Production) \\
+Authentification & JWT (JSON Web Tokens) \\
+API & REST, JSON \\
+\bottomrule
+\end{tabular}
+\caption{Stack technique du projet}
+\end{table}
+
+\subsection{Outils de Développement}
+
+\begin{itemize}
+    \item \textbf{IDE:} Visual Studio Code
+    \item \textbf{Versioning:} Git + GitHub
+    \item \textbf{API Testing:} Postman
+    \item \textbf{UML:} StarUML, PlantUML
+    \item \textbf{Documentation:} Markdown, LaTeX
+\end{itemize}
+
+\section{Méthodologie: SCRUM}
+
+\subsection{Principes SCRUM}
+
+SCRUM est un framework agile qui permet de développer des projets complexes de manière itérative et incrémentale. Les principes clés sont:
+
+\begin{enumerate}
+    \item \textbf{Itératif:} Développement par cycles courts (sprints)
+    \item \textbf{Incrémental:} Ajout progressif de fonctionnalités
+    \item \textbf{Adaptatif:} Ajustement continu selon feedback
+    \item \textbf{Collaboratif:} Équipe auto-organisée
+    \item \textbf{Transparent:} Visibilité totale sur l'avancement
+\end{enumerate}
+
+\subsection{Organisation en 4 Sprints}
+
+Le projet a été organisé en 4 sprints de 2 semaines chacun:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{clc}
+\toprule
+\textbf{Sprint} & \textbf{Focus} & \textbf{Points} \\
+\midrule
+Sprint 1 & Administrateur & 21 \\
+Sprint 2 & Gestionnaire d'Actifs & 34 \\
+Sprint 3 & Gestion Maintenances & 26 \\
+Sprint 4 & Messagerie & 22 \\
+\midrule
+\textbf{Total} & & \textbf{103} \\
+\bottomrule
+\end{tabular}
+\caption{Planification des sprints}
+\end{table}
+
+\textbf{Durée totale:} 8 semaines de développement
+
+\newpage
+
+% ============================================================
+% CHAPITRE 2: CAPTURE DES BESOINS
+% ============================================================
+\chapter{Capture des Besoins}
+
+\section{Introduction}
+
+La phase de capture des besoins est cruciale pour définir précisément ce que le système doit accomplir. Elle permet d'identifier les besoins fonctionnels, les besoins non-fonctionnels, les acteurs et les cas d'utilisation.
+
+\section{Besoins Fonctionnels}
+
+\subsection{BF1: Gestion des Utilisateurs}
+
+\begin{itemize}
+    \item Inscription et authentification
+    \item Gestion des profils utilisateurs
+    \item Attribution des rôles (Admin, Gestionnaire, Technicien)
+    \item Modification du mot de passe
+\end{itemize}
+
+\subsection{BF2: Gestion des Actifs}
+
+\begin{itemize}
+    \item Ajouter un nouvel actif
+    \item Consulter la liste des actifs
+    \item Modifier les informations d'un actif
+    \item Supprimer un actif
+    \item Rechercher un actif (par nom, catégorie, statut)
+    \item Filtrer les actifs (par catégorie, localisation, statut)
+    \item Consulter l'historique d'un actif
+    \item Enregistrer les mouvements d'actifs
+\end{itemize}
+
+\subsection{BF3: Gestion des Maintenances}
+
+\begin{itemize}
+    \item Planifier une maintenance préventive
+    \item Planifier une maintenance corrective
+    \item Consulter les maintenances planifiées
+    \item Modifier une maintenance
+    \item Annuler une maintenance
+    \item Marquer une maintenance comme terminée
+    \item Consulter l'historique des maintenances
+    \item Enregistrer le coût de la maintenance
+\end{itemize}
+
+\subsection{BF4: Système d'Alertes}
+
+Le système génère automatiquement des alertes pour:
+
+\begin{itemize}
+    \item Maintenances urgentes (dans les 7 prochains jours)
+    \item Maintenances en retard
+    \item Actifs nécessitant une maintenance
+\end{itemize}
+
+Les alertes sont \textbf{100\% dynamiques}, basées sur les données en temps réel, et s'actualisent automatiquement toutes les 30 secondes.
+
+\subsection{BF5: Messagerie}
+
+\begin{itemize}
+    \item Envoyer un message à un utilisateur
+    \item Créer un groupe de discussion
+    \item Consulter les conversations
+    \item Rechercher des messages
+    \item Recevoir des notifications
+\end{itemize}
+
+\section{Besoins Non-Fonctionnels}
+
+\subsection{BNF1: Performance}
+
+\begin{itemize}
+    \item Temps de chargement des pages $\leq$ 2 secondes
+    \item Temps de réponse API $\leq$ 500ms
+    \item Support de 100 utilisateurs simultanés
+\end{itemize}
+
+\subsection{BNF2: Sécurité}
+
+\begin{itemize}
+    \item Authentification JWT sécurisée
+    \item Hachage des mots de passe (bcrypt)
+    \item Protection contre les injections SQL (ORM)
+    \item Contrôle d'accès basé sur les rôles (RBAC)
+    \item HTTPS en production
+\end{itemize}
+
+\subsection{BNF3: Ergonomie}
+
+\begin{itemize}
+    \item Interface intuitive et moderne
+    \item Design responsive (mobile, tablet, desktop)
+    \item Feedback visuel pour chaque action
+    \item Messages d'erreur clairs
+\end{itemize}
+
+\section{Product Backlog}
+
+\begin{longtable}{|p{1cm}|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Points} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Points} \\
+\hline
+\endhead
+\hline
+\endfoot
+
+US01 & En tant qu'utilisateur, je veux m'authentifier afin d'accéder au système & Haute & 5 \\
+\hline
+US02 & En tant qu'admin, je veux gérer les utilisateurs afin de contrôler les accès & Haute & 8 \\
+\hline
+US03 & En tant qu'admin, je veux gérer les catégories afin d'organiser les actifs & Haute & 3 \\
+\hline
+US05 & En tant que gestionnaire, je veux ajouter un actif afin de l'enregistrer & Haute & 8 \\
+\hline
+US09 & En tant que gestionnaire, je veux planifier une maintenance afin de prévenir les pannes & Haute & 8 \\
+\hline
+US11 & En tant que responsable, je veux voir les alertes urgentes afin de prioriser les actions & Haute & 8 \\
+\hline
+US15 & En tant qu'utilisateur, je veux envoyer des messages afin de communiquer & Moyenne & 8 \\
+\hline
+
+\caption{Product Backlog (extrait)}
+\end{longtable}
+
+\textbf{Total Points:} 103 points sur 17 User Stories
+
+\newpage
+
+% ============================================================
+% NOTE: Les chapitres suivants suivent la même structure
+% ============================================================
+
+\chapter{Sprint 1: Administrateur}
+\input{sprint1}
+
+\chapter{Sprint 2: Gestionnaire d'Actifs}
+\input{sprint2}
+
+\chapter{Sprint 3: Gestion des Maintenances}
+\input{sprint3}
+
+\chapter{Sprint 4: Messagerie}
+\input{sprint4}
+
+% ============================================================
+% CONCLUSION
+% ============================================================
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+
+Ce projet de développement d'un système de gestion du patrimoine municipal a permis d'atteindre tous les objectifs fixés en appliquant rigoureusement la méthodologie SCRUM.
+
+\section*{Objectifs Atteints}
+
+\begin{itemize}
+    \item[\checkmark] \textbf{Authentification} sécurisée JWT
+    \item[\checkmark] \textbf{Gestion complète actifs} (CRUD)
+    \item[\checkmark] \textbf{Planification maintenances} préventives/correctives
+    \item[\checkmark] \textbf{Alertes dynamiques} 100\% temps réel
+    \item[\checkmark] \textbf{Statistiques} et graphiques interactifs
+    \item[\checkmark] \textbf{Messagerie} instantanée avec groupes
+    \item[\checkmark] \textbf{Architecture MicroServices} scalable
+\end{itemize}
+
+\section*{Technologies Maîtrisées}
+
+Au cours de ce projet, j'ai acquis et consolidé mes compétences dans les technologies suivantes:
+
+\begin{itemize}
+    \item \textbf{Frontend:} React 18, React Router, Recharts
+    \item \textbf{Backend:} Flask 3, SQLAlchemy, JWT
+    \item \textbf{Base de données:} SQL, ORM
+    \item \textbf{API:} REST, JSON
+    \item \textbf{Tests:} Postman, validation
+\end{itemize}
+
+\section*{Métriques du Projet}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Métrique} & \textbf{Valeur} \\
+\midrule
+Durée totale & 8 semaines \\
+Nombre de sprints & 4 \\
+Points de story & 103 \\
+Vélocité moyenne & 25.75 points/sprint \\
+Taux de réussite & 100\% \\
+\bottomrule
+\end{tabular}
+\caption{Métriques du projet}
+\end{table}
+
+\section*{Perspectives d'Évolution}
+
+Plusieurs pistes d'amélioration peuvent être envisagées pour enrichir le système:
+
+\begin{enumerate}
+    \item \textbf{Application mobile} (React Native) pour accès terrain
+    \item \textbf{Notifications push} pour alertes critiques
+    \item \textbf{Export PDF/Excel} avancé des rapports
+    \item \textbf{Scan QR Code} pour identification rapide des actifs
+    \item \textbf{Dashboard analytics} avec prédictions IA
+    \item \textbf{Intégration IoT} pour monitoring temps réel
+\end{enumerate}
+
+\section*{Mot de Fin}
+
+Ce projet a été une expérience enrichissante qui m'a permis de mettre en pratique mes connaissances en développement web full-stack et en gestion de projet agile. La réalisation d'un système complet, de l'analyse des besoins jusqu'au déploiement, m'a donné une vision globale du cycle de développement logiciel.
+
+% ============================================================
+% BIBLIOGRAPHIE
+% ============================================================
+\begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{Bibliographie}
+
+\bibitem{flask}
+Flask Documentation,
+\url{https://flask.palletsprojects.com/}
+
+\bibitem{react}
+React Documentation,
+\url{https://react.dev/}
+
+\bibitem{scrum}
+The Scrum Guide,
+Ken Schwaber and Jeff Sutherland,
+\url{https://scrumguides.org/}
+
+\bibitem{jwt}
+JSON Web Tokens Introduction,
+\url{https://jwt.io/introduction}
+
+\bibitem{restapi}
+RESTful API Design Best Practices,
+\url{https://restfulapi.net/}
+
+\bibitem{uml}
+UML Documentation,
+Object Management Group,
+\url{https://www.uml.org/}
+
+\end{thebibliography}
+
+% ============================================================
+% ANNEXES
+% ============================================================
+\appendix
+\chapter{Code Source Principal}
+\input{annexe_code}
+
+\chapter{Tests Postman}
+\input{annexe_tests}
+
+\chapter{Guide d'Installation}
+\input{annexe_installation}
+
+\end{document}

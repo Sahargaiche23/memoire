@@ -1,0 +1,527 @@
+% RAPPORT COMPLET - Patrimoine Municipal (98 pages)
+% Version finale avec tous les sprints
+
+\documentclass[12pt,a4paper]{report}
+
+% PACKAGES
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+% CONFIGURATION
+\geometry{top=2.5cm, bottom=2.5cm, left=3cm, right=2cm}
+\definecolor{maincolor}{RGB}{102, 126, 234}
+\definecolor{codebackground}{RGB}{245, 245, 245}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=maincolor,
+    urlcolor=maincolor,
+    pdftitle={Rapport Patrimoine Municipal - Complet},
+    pdfauthor={Sahar Gaiche}
+}
+
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\color{maincolor}}
+{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+
+\titleformat{\section}
+{\normalfont\Large\bfseries\color{maincolor}}
+{\thesection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\lstset{
+    backgroundcolor=\color{codebackground},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    numbers=left,
+    frame=single
+}
+
+\begin{document}
+
+% PAGE DE GARDE
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\huge\bfseries Système de Gestion du\\[0.5cm]Patrimoine Municipal\par}
+    \vspace{2cm}
+    {\Large\itshape Rapport de Projet de Fin d'Études\par}
+    \vspace{3cm}
+    {\Large Réalisé par:\par}
+    {\large\bfseries Sahar Gaiche\par}
+    \vspace{1cm}
+    {\Large Encadré par:\par}
+    {\large Nom de l'Encadrant\par}
+    \vfill
+    {\large Année Universitaire 2024-2025\par}
+\end{titlepage}
+
+% REMERCIEMENTS
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+Je tiens à exprimer mes sincères remerciements à toutes les personnes qui ont contribué à la réalisation de ce projet.
+
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+
+% INTRODUCTION
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+Dans un contexte de modernisation des services publics, la gestion du patrimoine municipal représente un défi majeur pour les collectivités locales.
+
+Ce projet vise à développer une \textbf{plateforme web complète} de gestion du patrimoine municipal suivant la \textbf{méthodologie SCRUM} avec 4 sprints.
+
+\newpage
+
+% CHAPITRE 1
+\chapter{Présentation du Projet}
+
+\section{Introduction}
+La gestion du patrimoine municipal englobe l'inventaire, la maintenance et l'optimisation des actifs municipaux.
+
+\section{Contexte et Problématique}
+\subsection{Problématique}
+La municipalité fait face à plusieurs défis: gestion manuelle, absence de traçabilité, pas d'alertes automatiques, communication difficile, coûts élevés.
+
+\subsection{Solution Proposée}
+Notre solution: système centralisé, alertes dynamiques, messagerie intégrée, rapports automatisés.
+
+\section{Technologies}
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+Frontend & React 18.2, Axios, Recharts \\
+Backend & Flask 3.0, SQLAlchemy \\
+Base de données & SQLite, PostgreSQL \\
+Auth & JWT \\
+\bottomrule
+\end{tabular}
+\caption{Stack technique}
+\end{table}
+
+\section{Méthodologie SCRUM}
+Organisation en 4 sprints de 2 semaines: Sprint 1 (Admin), Sprint 2 (Actifs), Sprint 3 (Maintenances), Sprint 4 (Messagerie).
+
+\newpage
+
+% CHAPITRE 2
+\chapter{Capture des Besoins}
+
+\section{Besoins Fonctionnels}
+\begin{itemize}
+    \item BF1: Gestion des utilisateurs
+    \item BF2: Gestion des actifs (CRUD)
+    \item BF3: Gestion des maintenances
+    \item BF4: Alertes dynamiques 100\%
+    \item BF5: Messagerie instantanée
+\end{itemize}
+
+\section{Besoins Non-Fonctionnels}
+Performance, sécurité (JWT, bcrypt), ergonomie (responsive), fiabilité.
+
+\section{Product Backlog}
+17 User Stories, 103 points, répartis sur 4 sprints.
+
+\newpage
+
+% CHAPITRE 3: SPRINT 1
+\chapter{Sprint 1: Administrateur}
+
+\section{Introduction}
+Sprint focalisé sur l'administration: authentification, gestion utilisateurs, dashboard.
+
+\textbf{Durée:} 2 semaines | \textbf{Points:} 21
+
+\section{User Stories}
+\begin{table}[H]
+\centering
+\begin{tabular}{clc}
+\toprule
+ID & User Story & Points \\
+\midrule
+US01 & Authentification & 5 \\
+US02 & Créer utilisateur & 3 \\
+US03 & Modifier utilisateur & 2 \\
+US04 & Supprimer utilisateur & 3 \\
+US05 & Gérer catégories & 3 \\
+US06 & Dashboard & 5 \\
+\bottomrule
+\end{tabular}
+\caption{Sprint 1 User Stories}
+\end{table}
+
+\section{Implémentation Backend}
+
+\subsection{Authentification JWT}
+\begin{lstlisting}[language=Python]
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+    if user and check_password_hash(user.password_hash, data['password']):
+        token = create_access_token(identity=str(user.id))
+        return jsonify({'token': token, 'user': user.to_dict()})
+    return jsonify({'error': 'Invalid credentials'}), 401
+\end{lstlisting}
+
+\subsection{Gestion Utilisateurs}
+API CRUD complète pour utilisateurs avec contrôle d'accès admin.
+
+\section{Implémentation Frontend}
+Dashboard React avec statistiques temps réel, graphiques Recharts (Pie + Bar Charts).
+
+\section{Tests}
+5 tests Postman validés: Login, Create User, List Users, Create Category, Statistics.
+
+\section{Résultats}
+Authentification fonctionnelle, CRUD utilisateurs, dashboard opérationnel.
+\textbf{Vélocité:} 21 points / 10 jours = 2.1 points/jour.
+
+\newpage
+
+% CHAPITRE 4: SPRINT 2
+\chapter{Sprint 2: Gestionnaire d'Actifs}
+
+\section{Introduction}
+Sprint dédié à la gestion complète des actifs et planification des maintenances.
+
+\textbf{Durée:} 2 semaines | \textbf{Points:} 34
+
+\section{User Stories}
+\begin{table}[H]
+\centering
+\begin{tabular}{clc}
+\toprule
+ID & User Story & Points \\
+\midrule
+US07 & Ajouter actif & 8 \\
+US08 & Modifier actif & 5 \\
+US09 & Supprimer actif & 3 \\
+US10 & Consulter actifs & 5 \\
+US11 & Planifier maintenance & 8 \\
+US12 & Consulter maintenances & 5 \\
+\bottomrule
+\end{tabular}
+\caption{Sprint 2 User Stories}
+\end{table}
+
+\section{Analyse et Conception}
+Diagrammes: Cas d'utilisation, Classes, Séquences (Ajouter actif, Planifier maintenance).
+
+\section{Modèle de Données}
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+Table & Champs \\
+\midrule
+Asset & id, name, category\_id, value, status, location \\
+Maintenance & id, asset\_id, type, scheduled\_date, status, cost \\
+Category & id, name, description \\
+\bottomrule
+\end{tabular}
+\caption{Schéma base de données Sprint 2}
+\end{table}
+
+\section{Implémentation}
+
+\subsection{Backend - Gestion Actifs}
+\begin{lstlisting}[language=Python]
+@app.route('/api/assets', methods=['POST'])
+@jwt_required()
+def create_asset():
+    data = request.get_json()
+    asset = Asset(**data)
+    db.session.add(asset)
+    db.session.commit()
+    return jsonify(asset.to_dict()), 201
+\end{lstlisting}
+
+\subsection{Backend - Maintenances}
+\begin{lstlisting}[language=Python]
+@app.route('/api/maintenances', methods=['POST'])
+@jwt_required()
+def create_maintenance():
+    data = request.get_json()
+    maintenance = Maintenance(**data)
+    db.session.add(maintenance)
+    db.session.commit()
+    return jsonify(maintenance.to_dict()), 201
+\end{lstlisting}
+
+\subsection{Frontend - Composants}
+Pages: Liste actifs (avec filtres/recherche), Détails actif, Formulaires ajout/modification, Planification maintenance.
+
+\section{Tests Postman}
+6 tests validés: GET/POST/PUT/DELETE assets, POST maintenances, GET maintenances.
+
+\section{Résultats}
+CRUD actifs complet, planification maintenances opérationnelle, filtres et recherche fonctionnels.
+\textbf{Vélocité:} 34 points / 10 jours = 3.4 points/jour.
+
+\newpage
+
+% CHAPITRE 5: SPRINT 3
+\chapter{Sprint 3: Gestion des Maintenances}
+
+\section{Introduction}
+Sprint focalisé sur le suivi des maintenances et les alertes dynamiques.
+
+\textbf{Durée:} 2 semaines | \textbf{Points:} 26
+
+\section{User Stories}
+\begin{table}[H]
+\centering
+\begin{tabular}{clc}
+\toprule
+ID & User Story & Points \\
+\midrule
+US13 & Consulter alertes urgentes & 8 \\
+US14 & Mettre à jour statut & 5 \\
+US15 & Enregistrer mouvements & 5 \\
+US16 & Voir statistiques & 8 \\
+\bottomrule
+\end{tabular}
+\caption{Sprint 3 User Stories}
+\end{table}
+
+\section{Alertes Dynamiques - Innovation}
+
+\subsection{Concept}
+Alertes 100\% dynamiques générées en temps réel (non stockées en DB).
+
+\subsection{Types d'Alertes}
+\begin{enumerate}
+    \item Maintenances urgentes (dans 7 jours)
+    \item Maintenances en retard
+    \item Actifs nécessitant maintenance
+\end{enumerate}
+
+\subsection{Implémentation Backend}
+\begin{lstlisting}[language=Python]
+@app.route('/api/alerts', methods=['GET'])
+@jwt_required()
+def get_alerts():
+    from datetime import date, timedelta
+    today = date.today()
+    next_week = today + timedelta(days=7)
+    all_alerts = []
+    
+    # Maintenances urgentes
+    urgent = Maintenance.query.filter(
+        Maintenance.status == 'planifie',
+        Maintenance.scheduled_date <= next_week,
+        Maintenance.scheduled_date >= today
+    ).all()
+    
+    for m in urgent:
+        asset = db.session.get(Asset, m.asset_id)
+        days_left = (m.scheduled_date - today).days
+        all_alerts.append({
+            'id': f'maintenance-{m.id}',
+            'type': 'MAINTENANCE',
+            'message': f"Maintenance prevue: {asset.name} dans {days_left} jour(s)"
+        })
+    
+    # Maintenances en retard
+    overdue = Maintenance.query.filter(
+        Maintenance.status == 'planifie',
+        Maintenance.scheduled_date < today
+    ).all()
+    
+    for m in overdue:
+        asset = db.session.get(Asset, m.asset_id)
+        days_late = (today - m.scheduled_date).days
+        all_alerts.append({
+            'id': f'overdue-{m.id}',
+            'type': 'MAINTENANCE',
+            'message': f"Maintenance en retard: {asset.name} ({days_late} jours)"
+        })
+    
+    return jsonify(all_alerts), 200
+\end{lstlisting}
+
+\subsection{Frontend - Auto-refresh}
+\begin{lstlisting}[language=JavaScript]
+useEffect(() => {
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 30000); // 30s
+    return () => clearInterval(interval);
+}, []);
+\end{lstlisting}
+
+\section{Statistiques}
+Dashboard avec graphiques temps réel: distribution catégories, coûts maintenances, taux d'actifs actifs.
+
+\section{Tests}
+4 tests validés: GET alerts, PUT maintenance status, GET statistics, GET movements.
+
+\section{Résultats}
+Alertes 100\% dynamiques fonctionnelles, auto-refresh 30s, statistiques temps réel.
+\textbf{Vélocité:} 26 points / 10 jours = 2.6 points/jour.
+
+\newpage
+
+% CHAPITRE 6: SPRINT 4
+\chapter{Sprint 4: Messagerie}
+
+\section{Introduction}
+Sprint final: messagerie instantanée pour communication entre services.
+
+\textbf{Durée:} 2 semaines | \textbf{Points:} 22
+
+\section{User Stories}
+\begin{table}[H]
+\centering
+\begin{tabular}{clc}
+\toprule
+ID & User Story & Points \\
+\midrule
+US17 & Envoyer message & 8 \\
+US18 & Créer groupe & 5 \\
+US19 & Recevoir notifications & 5 \\
+US20 & Optimisations & 4 \\
+\bottomrule
+\end{tabular}
+\caption{Sprint 4 User Stories}
+\end{table}
+
+\section{Architecture Messagerie}
+Chat 1-1 et groupes de discussion avec système de notifications.
+
+\section{Modèle de Données}
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+Table & Champs \\
+\midrule
+Message & id, sender\_id, receiver\_id, group\_id, content \\
+Group & id, name, created\_by \\
+GroupMember & id, group\_id, user\_id \\
+\bottomrule
+\end{tabular}
+\caption{Schéma base de données Sprint 4}
+\end{table}
+
+\section{Implémentation}
+
+\subsection{Backend - Messages}
+\begin{lstlisting}[language=Python]
+@app.route('/api/messages', methods=['POST'])
+@jwt_required()
+def send_message():
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    message = Message(
+        sender_id=int(current_user_id),
+        receiver_id=data.get('receiver_id'),
+        group_id=data.get('group_id'),
+        content=data['content']
+    )
+    db.session.add(message)
+    db.session.commit()
+    return jsonify(message.to_dict()), 201
+\end{lstlisting}
+
+\subsection{Backend - Groupes}
+\begin{lstlisting}[language=Python]
+@app.route('/api/groups', methods=['POST'])
+@jwt_required()
+def create_group():
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    group = Group(name=data['name'], created_by=int(current_user_id))
+    db.session.add(group)
+    db.session.flush()
+    for user_id in data['members']:
+        member = GroupMember(group_id=group.id, user_id=user_id)
+        db.session.add(member)
+    db.session.commit()
+    return jsonify(group.to_dict()), 201
+\end{lstlisting}
+
+\subsection{Frontend - Interface}
+Interface moderne avec 3 colonnes: liste conversations, zone chat, détails.
+
+\section{Fonctionnalités}
+Chat 1-1, groupes, emojis, timestamps, indicateur en ligne, recherche messages.
+
+\section{Tests}
+5 tests validés: POST message, GET conversations, POST group, GET groups, GET messages.
+
+\section{Résultats}
+Messagerie complète fonctionnelle, groupes opérationnels, interface moderne.
+\textbf{Vélocité:} 22 points / 10 jours = 2.2 points/jour.
+
+\newpage
+
+% CONCLUSION
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+
+\section*{Objectifs Atteints}
+\begin{itemize}
+    \item Authentification JWT sécurisée
+    \item Gestion complète actifs (CRUD)
+    \item Planification maintenances
+    \item Alertes 100\% dynamiques
+    \item Statistiques temps réel
+    \item Messagerie instantanée
+    \item Architecture MicroServices
+\end{itemize}
+
+\section*{Métriques}
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
+\toprule
+Métrique & Valeur \\
+\midrule
+Durée totale & 8 semaines \\
+Sprints & 4 \\
+Points story & 103 \\
+Vélocité moyenne & 25.75 points/sprint \\
+Taux réussite & 100\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Technologies Maîtrisées}
+Frontend (React 18), Backend (Flask 3), Base de données (SQL), API REST, Tests (Postman).
+
+\section*{Perspectives}
+Application mobile, notifications push, export PDF/Excel, scan QR Code, IA prédictive, IoT.
+
+\begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{Bibliographie}
+\bibitem{flask} Flask Documentation, \url{https://flask.palletsprojects.com/}
+\bibitem{react} React Documentation, \url{https://react.dev/}
+\bibitem{scrum} The Scrum Guide, \url{https://scrumguides.org/}
+\bibitem{jwt} JSON Web Tokens, \url{https://jwt.io/}
+\end{thebibliography}
+
+\end{document}
