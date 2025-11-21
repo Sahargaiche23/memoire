@@ -1,0 +1,152 @@
+@startuml use_case_global
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+title Diagramme de Cas d'Utilisation Global - Système ERP Patrimoine Municipal
+
+' Définition des acteurs
+actor "Administrateur" as Admin #FF6B6B
+actor "Responsable\nPatrimoine" as RespPatr #4ECDC4
+actor "Responsable\nService" as RespServ #45B7D1
+actor "Agent\nMaintenance" as Agent #FFA07A
+actor "Auditeur" as Auditeur #95E1D3
+
+' Package Gestion Système (Administrateur)
+package "Gestion Système" #FFEBEE {
+  usecase (UC01: Gérer les utilisateurs) as UC01
+  usecase (UC02: Gérer les rôles\net permissions) as UC02
+  usecase (UC03: Gérer les catégories\nd'actifs) as UC03
+  usecase (UC04: Configurer\nle système) as UC04
+  usecase (UC05: Consulter les logs\nd'audit) as UC05
+}
+
+' Package Gestion Patrimoine (Responsable Patrimoine)
+package "Gestion Patrimoine" #E3F2FD {
+  usecase (UC06: Gérer les actifs\n(CRUD)) as UC06
+  usecase (UC07: Planifier les\nmaintenances) as UC07
+  usecase (UC08: Consulter\nles alertes) as UC08
+  usecase (UC09: Générer\ndes rapports) as UC09
+  usecase (UC10: Enregistrer les\nmouvements d'actifs) as UC10
+}
+
+' Package Gestion Service (Responsable Service)
+package "Gestion Service" #FFF3E0 {
+  usecase (UC11: Consulter les actifs\nde son service) as UC11
+  usecase (UC12: Créer une demande\nde maintenance) as UC12
+  usecase (UC13: Suivre les\ninterventions) as UC13
+  usecase (UC14: Communiquer via\nmessagerie) as UC14
+}
+
+' Package Maintenance (Agent Maintenance)
+package "Opérations Maintenance" #F3E5F5 {
+  usecase (UC15: Consulter ses maintenances\nassignées) as UC15
+  usecase (UC16: Mettre à jour le statut\nd'intervention) as UC16
+  usecase (UC17: Enregistrer les\ncoûts réels) as UC17
+  usecase (UC18: Ajouter des notes\ntechniques) as UC18
+}
+
+' Package Audit (Auditeur)
+package "Audit et Analyse" #E8F5E9 {
+  usecase (UC19: Consulter\nles rapports) as UC19
+  usecase (UC20: Analyser\nles statistiques) as UC20
+  usecase (UC21: Exporter\nles données) as UC21
+}
+
+' Package Fonctionnalités Transversales
+package "Fonctionnalités Transversales" #F5F5F5 {
+  usecase (UC22: S'authentifier) as UC22
+  usecase (UC23: Consulter\nle dashboard) as UC23
+  usecase (UC24: Utiliser\nla messagerie) as UC24
+  usecase (UC25: Consulter\nles alertes) as UC25
+  usecase (UC26: Gérer\nson profil) as UC26
+}
+
+' Relations Administrateur
+Admin --> UC01
+Admin --> UC02
+Admin --> UC03
+Admin --> UC04
+Admin --> UC05
+
+' Relations Responsable Patrimoine
+RespPatr --> UC06
+RespPatr --> UC07
+RespPatr --> UC08
+RespPatr --> UC09
+RespPatr --> UC10
+
+' Relations Responsable Service
+RespServ --> UC11
+RespServ --> UC12
+RespServ --> UC13
+RespServ --> UC14
+
+' Relations Agent Maintenance
+Agent --> UC15
+Agent --> UC16
+Agent --> UC17
+Agent --> UC18
+
+' Relations Auditeur
+Auditeur --> UC19
+Auditeur --> UC20
+Auditeur --> UC21
+
+' Relations Transversales - Tous les acteurs
+Admin --> UC22
+Admin --> UC23
+Admin --> UC24
+Admin --> UC25
+Admin --> UC26
+
+RespPatr --> UC22
+RespPatr --> UC23
+RespPatr --> UC24
+RespPatr --> UC25
+RespPatr --> UC26
+
+RespServ --> UC22
+RespServ --> UC23
+RespServ --> UC24
+RespServ --> UC25
+RespServ --> UC26
+
+Agent --> UC22
+Agent --> UC23
+Agent --> UC24
+Agent --> UC25
+Agent --> UC26
+
+Auditeur --> UC22
+Auditeur --> UC23
+Auditeur --> UC25
+Auditeur --> UC26
+
+' Relations include/extend
+UC07 .> UC06 : <<include>>
+UC10 .> UC06 : <<include>>
+UC12 .> UC07 : <<extend>>
+UC16 .> UC15 : <<include>>
+UC17 .> UC16 : <<extend>>
+UC18 .> UC16 : <<extend>>
+
+' Notes explicatives
+note right of UC22
+  Point d'entrée obligatoire
+  pour tous les utilisateurs
+end note
+
+note bottom of UC23
+  Tableau de bord personnalisé
+  selon le rôle de l'utilisateur
+end note
+
+note left of UC08
+  Alertes intelligentes avec
+  système de priorités et
+  génération automatique
+end note
+
+@enduml

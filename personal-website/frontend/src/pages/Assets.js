@@ -87,15 +87,24 @@ function Assets({ user, onLogout }) {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Êtes-vous sûr?')) {
+    console.log('🖱️ Clic sur bouton supprimer actif, ID:', id);
+    
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet actif?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/assets/${id}`, {
+        console.log('🗑️ Suppression actif ID:', id);
+        const response = await axios.delete(`http://localhost:5000/api/assets/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        console.log('✅ Réponse:', response.data);
+        alert('✅ Actif supprimé avec succès!');
         fetchAssets();
       } catch (err) {
-        console.error('Erreur:', err);
+        console.error('❌ Erreur suppression actif:', err);
+        const errorMsg = err.response?.data?.error || 'Erreur lors de la suppression';
+        alert('❌ ' + errorMsg);
       }
+    } else {
+      console.log('❌ Suppression annulée par l\'utilisateur');
     }
   };
 

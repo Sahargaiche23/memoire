@@ -34,7 +34,7 @@ function Dashboard({ user, onLogout }) {
       ]);
 
       setStats(statsRes.data);
-      setAlerts(alertsRes.data.slice(0, 5));
+      setAlerts(alertsRes.data);
       console.log('✅ Données chargées:', alertsRes.data.length, 'alerte(s)');
     } catch (err) {
       console.error('Erreur:', err);
@@ -48,7 +48,7 @@ function Dashboard({ user, onLogout }) {
       const res = await axios.get('http://localhost:5000/api/alerts', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAlerts(res.data.slice(0, 5));
+      setAlerts(res.data);
       console.log('🔄 Alertes actualisées:', res.data.length);
     } catch (err) {
       console.error('Erreur actualisation alertes:', err);
@@ -56,12 +56,7 @@ function Dashboard({ user, onLogout }) {
   };
   
   const markAlertAsRead = async (alertId) => {
-    // Les alertes dynamiques (ex: "maintenance-5") ne peuvent pas être marquées
-    if (typeof alertId === 'string' && alertId.includes('-')) {
-      console.log('ℹ️ Les alertes dynamiques se mettent à jour automatiquement');
-      return;
-    }
-    
+    // Toutes les alertes sont maintenant stockées en BDD et peuvent être marquées
     try {
       await axios.put(`http://localhost:5000/api/alerts/${alertId}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
@@ -180,29 +175,72 @@ function Dashboard({ user, onLogout }) {
           <div className="alerts-list">
             {alerts.length > 0 ? (
               alerts.map(alert => {
-                // Les alertes dynamiques ne peuvent pas être marquées
-                const isDynamic = typeof alert.id === 'string' && alert.id.includes('-');
-                const isClickable = !alert.is_read && !isDynamic;
+                // Toutes les alertes peuvent maintenant être marquées comme lues
+                const isClickable = !alert.is_read;
+                
+                // Badge de priorité
+                const getPriorityBadge = (priority) => {
+                  const badges = {
+                    'CRITICAL': { emoji: '🚨', color: '#ef4444', text: 'Critique' },
+                    'HIGH': { emoji: '⚠️', color: '#f59e0b', text: 'Haute' },
+                    'MEDIUM': { emoji: '🔧', color: '#3b82f6', text: 'Moyenne' }
+                  };
+                  return badges[priority] || badges['MEDIUM'];
+                };
+                
+                const priorityBadge = getPriorityBadge(alert.priority);
                 
                 return (
                 <div 
                   key={alert.id} 
-                  className={`alert-item ${alert.is_read ? 'read' : 'unread'} ${isDynamic ? 'dynamic' : ''}`}
+                  className={`alert-item ${alert.is_read ? 'read' : 'unread'} priority-${alert.priority?.toLowerCase()}`}
                   onClick={() => isClickable && markAlertAsRead(alert.id)}
                   style={{ cursor: isClickable ? 'pointer' : 'default' }}
+                  title={isClickable ? 'Cliquez pour marquer comme lue' : ''}
                 >
-                  <div className="alert-icon">
-                    <AlertCircle size={20} />
+                  <div className="alert-icon" style={{ color: priorityBadge.color }}>
+                    <span style={{ fontSize: '24px' }}>{priorityBadge.emoji}</span>
                   </div>
                   <div className="alert-content">
-                    <h4>{alert.alert_type}</h4>
+                    <div className="alert-header">
+                      <h4>{alert.alert_type}</h4>
+                      <span className="priority-badge" style={{ 
+                        background: priorityBadge.color,
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                      }}>
+                        {priorityBadge.text}
+                      </span>
+                    </div>
                     <p>{alert.message}</p>
-                    <span className="alert-date">
-                      {new Date(alert.created_at).toLocaleDateString('fr-TN')}
-                    </span>
+                    <div className="alert-meta">
+                      <span className="alert-date">
+                        {new Date(alert.created_at).toLocaleDateString('fr-TN', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      {alert.days_count && (
+                        <span className="alert-days" style={{ 
+                          marginLeft: '10px',
+                          fontWeight: 'bold',
+                          color: priorityBadge.color 
+                        }}>
+                          {alert.alert_type === 'MAINTENANCE_LATE' 
+                            ? `${alert.days_count}j de retard` 
+                            : `${alert.days_count}j restants`
+                          }
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <span className={`alert-status ${alert.is_read ? 'read' : 'unread'}`}>
-                    {alert.is_read ? 'Lue' : 'Non lue'}
+                    {alert.is_read ? '✓ Lue' : '● Non lue'}
                   </span>
                 </div>
                 );

@@ -196,22 +196,73 @@
   flex: 1;
 }
 
+.alert-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
 .alert-content h4 {
   color: #333;
-  font-size: 14px;
-  margin-bottom: 5px;
+  font-size: 13px;
+  margin: 0;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .alert-content p {
   color: #666;
-  font-size: 13px;
-  margin-bottom: 5px;
+  font-size: 14px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.alert-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .alert-date {
   color: #999;
+  font-size: 11px;
+}
+
+.alert-days {
   font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.priority-badge {
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Styles par priorité */
+.alert-item.priority-critical {
+  border-left-color: #ef4444;
+}
+
+.alert-item.priority-critical.unread {
+  background: #fee2e2;
+}
+
+.alert-item.priority-high {
+  border-left-color: #f59e0b;
+}
+
+.alert-item.priority-high.unread {
+  background: #fef3c7;
+}
+
+.alert-item.priority-medium {
+  border-left-color: #3b82f6;
 }
 
 .alert-status {

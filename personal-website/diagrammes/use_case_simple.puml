@@ -1,0 +1,113 @@
+@startuml use_case_simple
+left to right direction
+skinparam packageStyle rectangle
+
+actor Administrateur as Admin
+actor "Responsable Patrimoine" as RespPatr
+actor "Responsable Service" as RespServ
+actor "Agent Maintenance" as Agent
+actor Auditeur
+
+rectangle "Système ERP Patrimoine Municipal" {
+  
+  package "Gestion Système" {
+    (Gérer utilisateurs) as UC01
+    (Gérer rôles) as UC02
+    (Gérer catégories) as UC03
+    (Configurer système) as UC04
+    (Consulter logs) as UC05
+  }
+  
+  package "Gestion Patrimoine" {
+    (Gérer actifs) as UC06
+    (Planifier maintenances) as UC07
+    (Consulter alertes) as UC08
+    (Générer rapports) as UC09
+    (Enregistrer mouvements) as UC10
+  }
+  
+  package "Gestion Service" {
+    (Consulter actifs service) as UC11
+    (Créer demande maintenance) as UC12
+    (Suivre interventions) as UC13
+    (Messagerie) as UC14
+  }
+  
+  package "Opérations Maintenance" {
+    (Consulter maintenances) as UC15
+    (MAJ statut) as UC16
+    (Enregistrer coûts) as UC17
+    (Ajouter notes) as UC18
+  }
+  
+  package "Audit" {
+    (Consulter rapports) as UC19
+    (Analyser stats) as UC20
+    (Exporter données) as UC21
+  }
+  
+  package "Transversal" {
+    (S'authentifier) as UC22
+    (Dashboard) as UC23
+    (Alertes) as UC25
+    (Gérer profil) as UC26
+  }
+}
+
+Admin --> UC01
+Admin --> UC02
+Admin --> UC03
+Admin --> UC04
+Admin --> UC05
+
+RespPatr --> UC06
+RespPatr --> UC07
+RespPatr --> UC08
+RespPatr --> UC09
+RespPatr --> UC10
+
+RespServ --> UC11
+RespServ --> UC12
+RespServ --> UC13
+RespServ --> UC14
+
+Agent --> UC15
+Agent --> UC16
+Agent --> UC17
+Agent --> UC18
+
+Auditeur --> UC19
+Auditeur --> UC20
+Auditeur --> UC21
+
+Admin --> UC22
+Admin --> UC23
+Admin --> UC25
+Admin --> UC26
+
+RespPatr --> UC22
+RespPatr --> UC23
+RespPatr --> UC25
+RespPatr --> UC26
+
+RespServ --> UC22
+RespServ --> UC23
+RespServ --> UC25
+RespServ --> UC26
+
+Agent --> UC22
+Agent --> UC23
+Agent --> UC25
+Agent --> UC26
+
+Auditeur --> UC22
+Auditeur --> UC23
+Auditeur --> UC25
+Auditeur --> UC26
+
+UC07 ..> UC06 : include
+UC10 ..> UC06 : include
+UC12 ..> UC07 : extend
+UC16 ..> UC15 : include
+
+@enduml

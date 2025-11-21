@@ -13,6 +13,8 @@ import qrcode
 import base64
 from dotenv import load_dotenv
 from pathlib import Path
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 load_dotenv()
 
@@ -150,12 +152,39 @@ class Movement(db.Model):
 class Alert(db.Model):
     __tablename__ = 'alerts'
     id = db.Column(db.Integer, primary_key=True)
-    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'))
-    alert_type = db.Column(db.String(50))  # maintenance, garantie, amortissement
-    message = db.Column(db.Text)
-    due_date = db.Column(db.Date)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=True)
+    maintenance_id = db.Column(db.Integer, db.ForeignKey('maintenances.id'), nullable=True)
+    alert_type = db.Column(db.String(50), nullable=False)  # MAINTENANCE_URGENT, MAINTENANCE_LATE, ASSET_MAINTENANCE_REQUIRED
+    priority = db.Column(db.String(20), default='MEDIUM')  # HIGH, CRITICAL, MEDIUM
+    message = db.Column(db.Text, nullable=False)
+    due_date = db.Column(db.Date, nullable=True)
+    days_count = db.Column(db.Integer, nullable=True)  # Jours restants ou jours de retard
     is_read = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)  # Permet de désactiver sans supprimer
+    is_dismissed = db.Column(db.Boolean, default=False)  # Ignorée définitivement par l'utilisateur
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relations
+    asset = db.relationship('Asset', backref='alerts', foreign_keys=[asset_id])
+    maintenance = db.relationship('Maintenance', backref='alerts', foreign_keys=[maintenance_id])
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'asset_id': self.asset_id,
+            'maintenance_id': self.maintenance_id,
+            'alert_type': self.alert_type,
+            'priority': self.priority,
+            'message': self.message,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'days_count': self.days_count,
+            'is_read': self.is_read,
+            'is_active': self.is_active,
+            'is_dismissed': self.is_dismissed,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
 
 class Message(db.Model):
     __tablename__ = 'messages'
@@ -373,6 +402,14 @@ def delete_user(user_id):
         # Supprimer les messages de chat de l'utilisateur
         ChatMessage.query.filter_by(user_id=user_id).delete()
         
+        # Supprimer l'utilisateur des groupes (table d'association group_members)
+        db.session.execute(
+            group_members.delete().where(group_members.c.user_id == user_id)
+        )
+        
+        # Supprimer les groupes créés par l'utilisateur
+        Group.query.filter_by(created_by=user_id).delete()
+        
         # Supprimer l'utilisateur
         db.session.delete(user)
         db.session.commit()
@@ -528,9 +565,21 @@ def delete_asset(asset_id):
     if not asset:
         return jsonify({'error': 'Actif non trouvé'}), 404
     
+    # Supprimer en cascade tous les éléments liés
+    # 1. Supprimer les maintenances associées
+    Maintenance.query.filter_by(asset_id=asset_id).delete()
+    
+    # 2. Supprimer les mouvements associés
+    Movement.query.filter_by(asset_id=asset_id).delete()
+    
+    # 3. Supprimer les alertes associées
+    Alert.query.filter_by(asset_id=asset_id).delete()
+    
+    # 4. Supprimer l'actif lui-même
     db.session.delete(asset)
     db.session.commit()
-    return jsonify({'message': 'Actif supprimé'}), 200
+    
+    return jsonify({'message': 'Actif et données associées supprimés'}), 200
 
 # ==================== MAINTENANCE ====================
 
@@ -679,10 +728,14 @@ def delete_maintenance(maintenance_id):
         
         print(f"🗑️ Suppression maintenance {maintenance_id}")
         
+        # Supprimer d'abord les alertes associées
+        Alert.query.filter_by(maintenance_id=maintenance_id).delete()
+        
+        # Puis supprimer la maintenance
         db.session.delete(maintenance)
         db.session.commit()
         
-        print(f"✅ Maintenance {maintenance_id} supprimée")
+        print(f"✅ Maintenance {maintenance_id} et alertes associées supprimées")
         
         return jsonify({'message': 'Maintenance supprimée'}), 200
     except Exception as e:
@@ -727,19 +780,25 @@ def create_movement():
 
 # ==================== ALERTS ====================
 
-@app.route('/api/alerts', methods=['GET'])
-@jwt_required()
-def get_alerts():
-    """Génération automatique d'alertes basées sur les données réelles (100% dynamique)"""
+def generate_and_update_alerts():
+    """
+    Fonction de génération/mise à jour des alertes stockées en base de données
+    À appeler régulièrement (via scheduler ou manuellement)
+    """
     try:
-        current_user_id = get_jwt_identity()
-        all_alerts = []
-        
-        # 1. ALERTES DYNAMIQUES: Maintenances urgentes (dans les 7 prochains jours)
-        from datetime import datetime, timedelta, date
+        from datetime import date, timedelta
         today = date.today()
         next_week = today + timedelta(days=7)
         
+        print("🔄 Début génération alertes...")
+        
+        # Désactiver toutes les alertes existantes (on va les recréer ou réactiver)
+        Alert.query.update({'is_active': False})
+        
+        alerts_created = 0
+        alerts_updated = 0
+        
+        # ==================== TYPE 1: Maintenances Urgentes (< 7 jours) ====================
         urgent_maintenances = Maintenance.query.filter(
             Maintenance.status == 'planifié',
             Maintenance.scheduled_date <= next_week,
@@ -750,20 +809,51 @@ def get_alerts():
             asset = db.session.get(Asset, m.asset_id) if m.asset_id else None
             days_left = (m.scheduled_date - today).days
             
-            all_alerts.append({
-                'id': f'maintenance-{m.id}',  # ID temporaire
-                'asset_id': m.asset_id,
-                'alert_type': 'MAINTENANCE',
-                'message': f"Maintenance prévue: {asset.name if asset else 'Actif'} dans {days_left} jour(s)",
-                'due_date': m.scheduled_date.isoformat(),
-                'is_read': False,
-                'created_at': m.created_at.isoformat() if m.created_at else datetime.now().isoformat(),
-                'source': 'dynamic'
-            })
+            message = f"Maintenance prévue: {asset.name if asset else 'Actif'} dans {days_left} jour(s)"
+            
+            # Vérifier si l'utilisateur a ignoré cette alerte
+            dismissed_alert = Alert.query.filter_by(
+                maintenance_id=m.id,
+                alert_type='MAINTENANCE_URGENT',
+                is_dismissed=True
+            ).first()
+            
+            if dismissed_alert:
+                # Ne pas recréer une alerte ignorée par l'utilisateur
+                continue
+            
+            # Vérifier si l'alerte existe déjà (inactive et non-dismissed)
+            existing_alert = Alert.query.filter_by(
+                maintenance_id=m.id,
+                alert_type='MAINTENANCE_URGENT'
+            ).filter(Alert.is_active == False, Alert.is_dismissed == False).first()
+            
+            if existing_alert:
+                # Mise à jour
+                existing_alert.message = message
+                existing_alert.days_count = days_left
+                existing_alert.due_date = m.scheduled_date
+                existing_alert.is_active = True
+                existing_alert.updated_at = datetime.utcnow()
+                alerts_updated += 1
+            else:
+                # Création
+                new_alert = Alert(
+                    asset_id=m.asset_id,
+                    maintenance_id=m.id,
+                    alert_type='MAINTENANCE_URGENT',
+                    priority='HIGH',
+                    message=message,
+                    due_date=m.scheduled_date,
+                    days_count=days_left,
+                    is_active=True
+                )
+                db.session.add(new_alert)
+                alerts_created += 1
         
-        # 3. ALERTES DYNAMIQUES: Maintenances en retard
+        # ==================== TYPE 2: Maintenances en Retard ====================
         overdue_maintenances = Maintenance.query.filter(
-            Maintenance.status == 'planifié',
+            Maintenance.status.in_(['planifié', 'en_cours']),
             Maintenance.scheduled_date < today
         ).all()
         
@@ -771,65 +861,146 @@ def get_alerts():
             asset = db.session.get(Asset, m.asset_id) if m.asset_id else None
             days_late = (today - m.scheduled_date).days
             
-            all_alerts.append({
-                'id': f'overdue-{m.id}',
-                'asset_id': m.asset_id,
-                'alert_type': 'MAINTENANCE',
-                'message': f"⚠️ Maintenance en retard: {asset.name if asset else 'Actif'} ({days_late} jour(s))",
-                'due_date': m.scheduled_date.isoformat(),
-                'is_read': False,
-                'created_at': m.created_at.isoformat() if m.created_at else datetime.now().isoformat(),
-                'source': 'dynamic'
-            })
+            message = f"⚠️ Maintenance en retard: {asset.name if asset else 'Actif'} ({days_late} jour(s) de retard)"
+            
+            # Vérifier si l'utilisateur a ignoré cette alerte
+            dismissed_alert = Alert.query.filter_by(
+                maintenance_id=m.id,
+                alert_type='MAINTENANCE_LATE',
+                is_dismissed=True
+            ).first()
+            
+            if dismissed_alert:
+                # Ne pas recréer une alerte ignorée par l'utilisateur
+                continue
+            
+            # Vérifier si l'alerte existe déjà (inactive et non-dismissed)
+            existing_alert = Alert.query.filter_by(
+                maintenance_id=m.id,
+                alert_type='MAINTENANCE_LATE'
+            ).filter(Alert.is_active == False, Alert.is_dismissed == False).first()
+            
+            if existing_alert:
+                # Mise à jour
+                existing_alert.message = message
+                existing_alert.days_count = days_late
+                existing_alert.due_date = m.scheduled_date
+                existing_alert.is_active = True
+                existing_alert.updated_at = datetime.utcnow()
+                alerts_updated += 1
+            else:
+                # Création
+                new_alert = Alert(
+                    asset_id=m.asset_id,
+                    maintenance_id=m.id,
+                    alert_type='MAINTENANCE_LATE',
+                    priority='CRITICAL',
+                    message=message,
+                    due_date=m.scheduled_date,
+                    days_count=days_late,
+                    is_active=True
+                )
+                db.session.add(new_alert)
+                alerts_created += 1
         
-        # 4. ALERTES DYNAMIQUES: Actifs nécessitant maintenance (status maintenance_required)
-        assets_need_maintenance = Asset.query.filter_by(status='maintenance_required').all()
+        # TYPE 3 (ASSET_MAINTENANCE_REQUIRED) supprimé - alertes 100% dynamiques basées sur maintenances uniquement
         
-        for asset in assets_need_maintenance:
-            all_alerts.append({
-                'id': f'asset-{asset.id}',
-                'asset_id': asset.id,
-                'alert_type': 'ASSET',
-                'message': f"🔧 Actif nécessitant maintenance: {asset.name}",
-                'due_date': None,
-                'is_read': False,
-                'created_at': datetime.now().isoformat(),
-                'source': 'dynamic'
-            })
+        # Commit toutes les modifications
+        db.session.commit()
         
-        # Trier par date (plus récentes en premier)
-        all_alerts.sort(key=lambda x: x['created_at'], reverse=True)
+        # Supprimer les alertes inactives (mais conserver les dismissed pour historique)
+        Alert.query.filter_by(is_active=False, is_dismissed=False).delete()
+        db.session.commit()
         
-        print(f"📊 Alertes dynamiques générées: {len(all_alerts)} au total (100% basées sur les données réelles)")
+        print(f"✅ Génération alertes terminée: {alerts_created} créées, {alerts_updated} mises à jour")
+        return alerts_created, alerts_updated
         
-        return jsonify(all_alerts), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Erreur génération alertes: {e}")
+        raise e
+
+@app.route('/api/alerts', methods=['GET'])
+@jwt_required()
+def get_alerts():
+    """Récupère les alertes stockées en base de données (gérées par scheduler automatique)"""
+    try:
+        # Les alertes sont maintenant générées automatiquement toutes les 5 minutes par le scheduler
+        # Pas besoin de régénérer à chaque requête = meilleures performances! 🚀
+        
+        # Récupérer toutes les alertes actives ET non-ignorées depuis la base de données
+        alerts = Alert.query.filter_by(is_active=True, is_dismissed=False).order_by(Alert.priority.desc(), Alert.created_at.desc()).all()
+        
+        # Convertir en JSON
+        alerts_list = [alert.to_dict() for alert in alerts]
+        
+        print(f"📊 Alertes récupérées depuis BDD: {len(alerts_list)} alertes actives (scheduler automatique)")
+        
+        return jsonify(alerts_list), 200
     except Exception as e:
         print(f"❌ Erreur get_alerts: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/alerts/<alert_id>/read', methods=['PUT'])
+@app.route('/api/alerts/<int:alert_id>/read', methods=['PUT'])
 @jwt_required()
 def mark_alert_read(alert_id):
-    """Marquer une alerte comme lue (les alertes dynamiques ne peuvent pas être marquées)"""
+    """Marquer une alerte comme lue (stockée en BDD)"""
     try:
-        # Les alertes dynamiques ont des IDs string (ex: "maintenance-5")
-        # Elles ne peuvent pas être marquées car elles ne sont pas en DB
-        if isinstance(alert_id, str) and ('-' in alert_id):
-            print(f"ℹ️ Alerte dynamique {alert_id} - Ne peut pas être marquée comme lue")
-            return jsonify({
-                'message': 'Les alertes dynamiques se mettent à jour automatiquement',
-                'alert_id': alert_id
-            }), 200
-        
-        # Alertes statiques (si elles existent encore)
-        alert = db.session.get(Alert, int(alert_id))
+        # Récupérer l'alerte depuis la base de données
+        alert = db.session.get(Alert, alert_id)
         if not alert:
             return jsonify({'error': 'Alerte non trouvée'}), 404
         
+        # Marquer comme lue
         alert.is_read = True
+        alert.updated_at = datetime.utcnow()
         db.session.commit()
-        return jsonify({'message': 'Alerte marquée comme lue'}), 200
+        
+        print(f"✅ Alerte {alert_id} marquée comme lue")
+        return jsonify({
+            'message': 'Alerte marquée comme lue',
+            'alert': alert.to_dict()
+        }), 200
     except Exception as e:
+        db.session.rollback()
+        print(f"❌ Erreur mark_alert_read: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/alerts/generate', methods=['POST'])
+@jwt_required()
+def regenerate_alerts():
+    """Endpoint pour régénérer manuellement toutes les alertes"""
+    try:
+        alerts_created, alerts_updated = generate_and_update_alerts()
+        
+        return jsonify({
+            'message': 'Alertes régénérées avec succès',
+            'alerts_created': alerts_created,
+            'alerts_updated': alerts_updated
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/alerts/<int:alert_id>', methods=['DELETE'])
+@jwt_required()
+def delete_alert(alert_id):
+    """Ignorer définitivement une alerte (dismissed)"""
+    try:
+        alert = db.session.get(Alert, alert_id)
+        if not alert:
+            return jsonify({'error': 'Alerte non trouvée'}), 404
+        
+        # Marquer comme ignorée définitivement par l'utilisateur
+        # L'alerte ne sera plus recréée par le scheduler
+        alert.is_dismissed = True
+        alert.is_active = False
+        alert.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        print(f"✅ Alerte {alert_id} ignorée définitivement (dismissed)")
+        return jsonify({'message': 'Alerte ignorée définitivement'}), 200
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 # ==================== MESSAGING ====================
@@ -2008,6 +2179,53 @@ def invalid_token_callback(error):
 @jwt.unauthorized_loader
 def missing_token_callback(error):
     return jsonify({'error': 'Token manquant'}), 401
+
+# ==================== SCHEDULER AUTOMATIQUE POUR ALERTES ====================
+
+def scheduled_alert_generation():
+    """
+    Fonction appelée périodiquement par le scheduler pour générer les alertes
+    """
+    with app.app_context():
+        try:
+            print(f"\n⏰ [{datetime.now().strftime('%H:%M:%S')}] Génération automatique des alertes...")
+            alerts_created, alerts_updated = generate_and_update_alerts()
+            print(f"✅ Scheduler: {alerts_created} créées, {alerts_updated} mises à jour\n")
+        except Exception as e:
+            print(f"❌ Erreur scheduler alertes: {e}\n")
+
+# Créer et configurer le scheduler
+scheduler = BackgroundScheduler()
+
+# Générer les alertes toutes les 5 minutes
+scheduler.add_job(
+    func=scheduled_alert_generation,
+    trigger="interval",
+    minutes=5,
+    id='alert_generation_job',
+    name='Génération automatique des alertes',
+    replace_existing=True
+)
+
+# Démarrer le scheduler
+scheduler.start()
+print("\n🤖 SCHEDULER AUTOMATIQUE DÉMARRÉ!")
+print("📋 Configuration:")
+print("   - Génération des alertes: toutes les 5 minutes")
+print("   - Première exécution: dans 5 minutes")
+print("   - Mode: Arrière-plan (non-bloquant)\n")
+
+# Générer les alertes immédiatement au démarrage
+with app.app_context():
+    try:
+        print("🚀 Génération initiale des alertes au démarrage...")
+        alerts_created, alerts_updated = generate_and_update_alerts()
+        print(f"✅ Démarrage: {alerts_created} créées, {alerts_updated} mises à jour\n")
+    except Exception as e:
+        print(f"❌ Erreur génération initiale: {e}\n")
+
+# Arrêter le scheduler proprement à la fermeture de l'application
+atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
     with app.app_context():

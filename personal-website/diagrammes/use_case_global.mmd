@@ -1,0 +1,135 @@
+graph TB
+    %% Définition des acteurs
+    Admin["👑 Administrateur"]
+    RespPatr["💼 Responsable<br/>Patrimoine"]
+    RespServ["📋 Responsable<br/>Service"]
+    Agent["🔧 Agent<br/>Maintenance"]
+    Auditeur["📈 Auditeur"]
+    
+    %% Package Gestion Système
+    subgraph GestionSysteme["🔐 GESTION SYSTÈME"]
+        UC01["UC01: Gérer les<br/>utilisateurs"]
+        UC02["UC02: Gérer rôles<br/>et permissions"]
+        UC03["UC03: Gérer catégories<br/>d'actifs"]
+        UC04["UC04: Configurer<br/>le système"]
+        UC05["UC05: Consulter logs<br/>d'audit"]
+    end
+    
+    %% Package Gestion Patrimoine
+    subgraph GestionPatrimoine["💼 GESTION PATRIMOINE"]
+        UC06["UC06: Gérer actifs<br/>(CRUD)"]
+        UC07["UC07: Planifier<br/>maintenances"]
+        UC08["UC08: Consulter<br/>alertes"]
+        UC09["UC09: Générer<br/>rapports"]
+        UC10["UC10: Enregistrer<br/>mouvements actifs"]
+    end
+    
+    %% Package Gestion Service
+    subgraph GestionService["📋 GESTION SERVICE"]
+        UC11["UC11: Consulter actifs<br/>de son service"]
+        UC12["UC12: Créer demande<br/>maintenance"]
+        UC13["UC13: Suivre<br/>interventions"]
+        UC14["UC14: Messagerie"]
+    end
+    
+    %% Package Opérations Maintenance
+    subgraph OperationsMaintenance["🔧 OPÉRATIONS MAINTENANCE"]
+        UC15["UC15: Consulter maintenances<br/>assignées"]
+        UC16["UC16: MAJ statut<br/>intervention"]
+        UC17["UC17: Enregistrer<br/>coûts réels"]
+        UC18["UC18: Ajouter notes<br/>techniques"]
+    end
+    
+    %% Package Audit
+    subgraph AuditAnalyse["📊 AUDIT ET ANALYSE"]
+        UC19["UC19: Consulter<br/>rapports"]
+        UC20["UC20: Analyser<br/>statistiques"]
+        UC21["UC21: Exporter<br/>données"]
+    end
+    
+    %% Package Transversal
+    subgraph Transversal["🌐 FONCTIONNALITÉS TRANSVERSALES"]
+        UC22["UC22: S'authentifier"]
+        UC23["UC23: Dashboard"]
+        UC24["UC24: Messagerie"]
+        UC25["UC25: Alertes"]
+        UC26["UC26: Gérer profil"]
+    end
+    
+    %% Relations Administrateur
+    Admin -.-> UC01
+    Admin -.-> UC02
+    Admin -.-> UC03
+    Admin -.-> UC04
+    Admin -.-> UC05
+    
+    %% Relations Responsable Patrimoine
+    RespPatr -.-> UC06
+    RespPatr -.-> UC07
+    RespPatr -.-> UC08
+    RespPatr -.-> UC09
+    RespPatr -.-> UC10
+    
+    %% Relations Responsable Service
+    RespServ -.-> UC11
+    RespServ -.-> UC12
+    RespServ -.-> UC13
+    RespServ -.-> UC14
+    
+    %% Relations Agent Maintenance
+    Agent -.-> UC15
+    Agent -.-> UC16
+    Agent -.-> UC17
+    Agent -.-> UC18
+    
+    %% Relations Auditeur
+    Auditeur -.-> UC19
+    Auditeur -.-> UC20
+    Auditeur -.-> UC21
+    
+    %% Relations Transversales
+    Admin -.-> UC22
+    Admin -.-> UC23
+    Admin -.-> UC24
+    Admin -.-> UC25
+    Admin -.-> UC26
+    
+    RespPatr -.-> UC22
+    RespPatr -.-> UC23
+    RespPatr -.-> UC24
+    RespPatr -.-> UC25
+    RespPatr -.-> UC26
+    
+    RespServ -.-> UC22
+    RespServ -.-> UC23
+    RespServ -.-> UC24
+    RespServ -.-> UC25
+    RespServ -.-> UC26
+    
+    Agent -.-> UC22
+    Agent -.-> UC23
+    Agent -.-> UC24
+    Agent -.-> UC25
+    Agent -.-> UC26
+    
+    Auditeur -.-> UC22
+    Auditeur -.-> UC23
+    Auditeur -.-> UC25
+    Auditeur -.-> UC26
+    
+    %% Relations entre cas d'utilisation
+    UC07 -->|include| UC06
+    UC10 -->|include| UC06
+    UC12 -.->|extend| UC07
+    UC16 -->|include| UC15
+    UC17 -.->|extend| UC16
+    UC18 -.->|extend| UC16
+    
+    %% Styles
+    classDef acteur fill:#FFE5E5,stroke:#FF6B6B,stroke-width:3px
+    classDef uc fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    classDef ucCritical fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    
+    class Admin,RespPatr,RespServ,Agent,Auditeur acteur
+    class UC01,UC02,UC03,UC04,UC05,UC06,UC07,UC08,UC09,UC10,UC11,UC12,UC13,UC14,UC15,UC16,UC17,UC18,UC19,UC20,UC21 uc
+    class UC22,UC23,UC24,UC25,UC26 ucCritical
